@@ -9,60 +9,48 @@
 // implementation.
 
 int main(void) {
-  printf("starting app...\n");
+    printf("Starting app...\n");
 
-  hashtable *ht = NULL;
+    hashtable *ht = NULL;
+    int size = 10;
+    allocate(&ht, size);
 
-  int size = 10;
+    int key = 0;
+    int value = -1;
 
-  allocate(&ht, size);
+    put(ht, key, value);
 
-  int key = 0;
+    key = 1;
 
-  int value = -1;
+    value = -100;
 
-  put(ht, key, value);
+    put(ht, key, value);
 
-  key = 1;
+    key = 1;
 
-  value = -100;
+    value = -10;
 
-  put(ht, key, value);
+    put(ht, key, value);
 
-  key = 1;
+    int num_values = 1;
 
-  value = -10;
+    valType* values = malloc(sizeof(valType));
 
-  put(ht, key, value);
+    int num_results = 0;
 
-  int num_values = 1;
+    get(ht, key, values, num_values, &num_results);
+    if (num_results > num_values) {
+        values = realloc(values, (ulong)num_results * sizeof(valType));
+        get(ht, key, values, num_results, &num_results);
+    }
 
-  valType* values = malloc(sizeof(valType));
+    for (int i = 0; i < num_results; i++) {
+      printf("value %d is %d \n", i, values[i]);
+    }
 
-  int num_results = 0;
+    free(values);
+    erase(ht, 0);
+    deallocate(ht);
 
-  get(ht, key, values, num_values, &num_results);
-
-  if (num_results > num_values) {
-
-    values = realloc(values, num_results * sizeof(valType));
-
-    get(ht, 0, values, num_values, &num_results);
-
-  }
-
-  for (int i = 0; i < num_results; i++) {
-
-    printf("value %d is %d \n", i, values[i]);
-
-  }
-
-  free(values);
-
-  erase(ht, 0);
-
-  deallocate(ht);
-
-  return 0;
-
+    return 0;
 }

@@ -9,19 +9,25 @@ static int ARY_MULTIPLIER = 2;
 // The size parameter is the expected number of elements to be inserted.
 // This method returns an error code, 0 for success and -1 otherwise (e.g., if the parameter passed to the method is not null, if malloc fails, etc).
 int allocate(hashtable** ht, int size) {
+
+    // will not initialize a 0 size hashtable
     if (size < 1) {
         return -1;
     }
 
+    // ht is null, nothing to allocate
     if (!ht) {
         return -1;
     }
 
     hashtable * ht_temp;
     ht_temp = malloc(sizeof (struct hashtable));
+
+    // unable to allocate enough space for hashtable
     if (ht_temp == NULL) {
         return -1;
     }
+
     ht_temp->size = size * ARY_MULTIPLIER;
     ht_temp->list = malloc(sizeof(struct list*) * (ulong)(size * ARY_MULTIPLIER));
     for (int idx = 0; idx < size * ARY_MULTIPLIER; idx++) {
@@ -37,6 +43,8 @@ int allocate(hashtable** ht, int size) {
 // This method inserts a key-value pair into the hash table.
 // It returns an error code, 0 for success and -1 otherwise (e.g., if malloc is called and fails).
 int put(hashtable* ht, keyType key, valType value) {
+
+    // ht is null, no where to put data
     if (!ht) {
         return -1;
     }
@@ -55,7 +63,7 @@ int put(hashtable* ht, keyType key, valType value) {
     if (hash_node) {
         kvNodeType * list_node;
         list_node = hash_node;
-        while (list_node->next != NULL) {
+        while (list_node->next) {
             list_node = list_node->next;
         }
         list_node->next = new_node;
@@ -78,19 +86,48 @@ int put(hashtable* ht, keyType key, valType value) {
 // This method returns an error code, 0 for success and -1 otherwise (e.g., if the hashtable is not allocated).
 int get(hashtable* ht, keyType key, valType *values, int num_values, int* num_results) {
 
-    (void) ht;
-
-    (void) key;
-
-    (void) values;
-
-    (void) num_values;
-
-    (void) num_results;
-
+    // ht is null, nothing to look in
     if (!ht) {
         return -1;
     }
+
+    // key is null, nothing to find
+    if (!key) {
+        return -1;
+    }
+
+    // num_values size must be greater than 0
+    if (num_values <= 0) {
+        return -1;
+    }
+
+    // passed in size does not equal the actual array size
+    int valuesSize = sizeof(values)/sizeof(valType);
+    if (valuesSize < num_values) {
+        return -1;
+    }
+
+    // Modular Hash
+    int hash = key % ht->size;
+
+    // get the nodes from ht->list based on the key hash
+    kvNodeType* list = NULL;
+    list = ht->list[hash];
+
+    // no keys found for hash result
+    if (!list) {
+        return -1;
+    }
+
+    int idx = 0;
+    (*num_results) = 0;
+    do {
+        if (idx < num_values) {
+            values[idx] = list->val;
+            idx++;
+        }
+        (*num_results)++;
+    } while ((list = list->next));
 
     return 0;
 }
@@ -111,6 +148,7 @@ int erase(hashtable* ht, keyType key) {
 // This method frees all memory occupied by the hash table.
 // It returns an error code, 0 for success and -1 otherwise.
 int deallocate(hashtable* ht) {
+    // ht is null, nothing to deallocate
     if (!ht) {
         return -1;
     }
@@ -120,7 +158,7 @@ int deallocate(hashtable* ht) {
         kvNodeType *currNode = kvNode;
         kvNodeType *tempNode;
         if (currNode) {
-            while(currNode->next != NULL) {
+            while(currNode->next) {
                 tempNode = currNode;
                 currNode = kvNode->next;
                 free(tempNode);
